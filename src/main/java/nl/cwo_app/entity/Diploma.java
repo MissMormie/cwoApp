@@ -1,8 +1,8 @@
 package nl.cwo_app.entity;
 // Generated Feb 23, 2017 2:41:20 PM by Hibernate Tools 4.3.1
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -21,12 +21,14 @@ public class Diploma implements java.io.Serializable {
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Id
   private Long id;
-  private String titel;
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "diploma")
   
-  private Set<CwoEisen> cwoEisen = new HashSet(0);
+  private String titel;
   
   private int nivo;
+
+  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "diploma") 
+  private List<DiplomaEis> diplomaEisen = new ArrayList();
+  
 
 
   public Diploma() {
@@ -52,11 +54,21 @@ public class Diploma implements java.io.Serializable {
     this.titel = titel;
   }
 
-  public Set getCwoEisen() {
-    return this.cwoEisen;
-  }
+    public int getNivo() {
+        return nivo;
+    }
 
-  public void setCwoEisen(Set cwoEisen) {
-    this.cwoEisen = cwoEisen;
-  }
+    public void setNivo(int nivo) {
+        this.nivo = nivo;
+    }
+
+    public List<DiplomaEis> getDiplomaEisen() {
+        return diplomaEisen;
+    }
+
+    public void setDiplomaEisen(List<DiplomaEis> diplomaEisen) {
+        this.diplomaEisen = diplomaEisen;
+    }
+
+
 }

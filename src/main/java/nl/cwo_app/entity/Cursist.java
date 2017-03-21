@@ -1,8 +1,10 @@
 package nl.cwo_app.entity;
 // Generated Feb 23, 2017 2:41:20 PM by Hibernate Tools 4.3.1
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -31,14 +33,13 @@ public class Cursist implements java.io.Serializable {
   @Temporal(javax.persistence.TemporalType.DATE)
   private Date paspoort;
   private String foto;
-  
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursist")
-  private Set<CursistBehaaldEisen> cursistBehaaldEisen = new HashSet(0);
-  
-  // TODO change this to lazy fetching, can't get this to work atm. problem is jackson serialization happens before object is loaded.
-  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "cursist")
-  private Set<CursistHeeftDiploma> cursistHeeftDiplomas = new HashSet(0);
 
+  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursistId")
+  private List<CursistBehaaldEis> cursistBehaaldEis = new ArrayList(0);
+
+  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursistId")
+  private List<CursistHeeftDiploma> cursistHeeftDiplomas = new ArrayList();
+  
 
   public Cursist() {
   }
@@ -46,17 +47,6 @@ public class Cursist implements java.io.Serializable {
   public Cursist(String voornaam) {
     this.voornaam = voornaam;
   }
-/*
-  public Cursist(String voornaam, String tussenvoegsel, String achternaam, String opmerkingen, Date paspoort, String foto, Set cursistBehaaldEisens, Set cursistHeeftDiplomas) {
-    this.voornaam = voornaam;
-    this.tussenvoegsel = tussenvoegsel;
-    this.achternaam = achternaam;
-    this.opmerkingen = opmerkingen;
-    this.paspoort = paspoort;
-    this.foto = foto;
-    this.cursistBehaaldEisen = cursistBehaaldEisens;
-    this.cursistHeeftDiplomas = cursistHeeftDiplomas;
-  }*/
 
   public Long getId() {
     return this.id;
@@ -113,19 +103,31 @@ public class Cursist implements java.io.Serializable {
   public void setFoto(String foto) {
     this.foto = foto;
   }
-  public Set getCursistBehaaldEisen() {
-    return this.cursistBehaaldEisen;
-  }
 
-  public void setCursistBehaaldEisen(Set cursistBehaaldEisen) {
-    this.cursistBehaaldEisen = cursistBehaaldEisen;
-  }
+    public List<CursistBehaaldEis> getCursistBehaaldEis() {
+        return cursistBehaaldEis;
+    }
 
-  public Set getCursistHeeftDiplomas() {
-    return this.cursistHeeftDiplomas;
-  }
+    public void setCursistBehaaldEis(List<CursistBehaaldEis> cursistBehaaldEis) {
+        this.cursistBehaaldEis = cursistBehaaldEis;
+    }
 
-  public void setCursistHeeftDiplomas(Set cursistHeeftDiplomas) {
-    this.cursistHeeftDiplomas = cursistHeeftDiplomas;
-  }
+    public List<CursistHeeftDiploma> getCursistHeeftDiplomas() {
+        return cursistHeeftDiplomas;
+    }
+
+    public void setCursistHeeftDiplomas(List<CursistHeeftDiploma> cursistHeeftDiplomas) {
+        this.cursistHeeftDiplomas = cursistHeeftDiplomas;
+    }
+    
+    public List<CursistBehaaldEis> makeTheorieBehaaldEisList() {
+        List<CursistBehaaldEis> cursistBehaaldTheorieEis = new ArrayList();
+        for(CursistBehaaldEis cbe: cursistBehaaldEis) {
+            if(cbe.checkTheorieEis()) {
+                cursistBehaaldTheorieEis.add(cbe);
+            }
+        }
+        return cursistBehaaldTheorieEis;
+    }
+
 }

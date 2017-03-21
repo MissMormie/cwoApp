@@ -7,7 +7,7 @@ package nl.cwo_app.repository;
 
 import java.io.Serializable;
 import java.util.List;
-import nl.cwo_app.entity.CwoEisen;
+import nl.cwo_app.entity.DiplomaEis;
 import nl.cwo_app.entity.Diploma;
 import org.springframework.data.repository.CrudRepository;
 
@@ -15,6 +15,6 @@ import org.springframework.data.repository.CrudRepository;
  *
  * @author Sonja
  */
-public interface CwoEisenRepository extends CrudRepository<CwoEisen, Serializable>{
-  List<CwoEisen> findByDiploma(Diploma diploma);
+public interface DiplomaEisRepository extends CrudRepository<DiplomaEis, Serializable>{
+  List<DiplomaEis> findByDiploma(Diploma diploma);
 }

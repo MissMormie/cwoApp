@@ -6,6 +6,7 @@
 package nl.cwo_app.controller;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,4 +23,10 @@ public class ExceptionHandlerController {
   @ExceptionHandler(DataIntegrityViolationException.class)
   public void MySQLIntegrityConstraintViolationException() {
   }
+  
+  
+  @ResponseStatus(value=HttpStatus.CONFLICT, reason="Empty Result Data Access Exception")  // Error 409
+  @ExceptionHandler(EmptyResultDataAccessException.class)
+  public void EmptyResultDataAccessException() {
+  }  
 }
