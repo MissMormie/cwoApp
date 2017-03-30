@@ -14,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -34,6 +35,9 @@ public class Cursist implements java.io.Serializable {
   private Date paspoort;
   private String foto;
 
+  @Transient
+  private String fotoFileBase64;
+  
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursistId")
   private List<CursistBehaaldEis> cursistBehaaldEis = new ArrayList(0);
 
@@ -52,6 +56,16 @@ public class Cursist implements java.io.Serializable {
     return this.id;
   }
 
+    public String getFotoFileBase64() {
+        return fotoFileBase64;
+    }
+
+    public void setFotoFileBase64(String fotoFileBase64) {
+        this.fotoFileBase64 = fotoFileBase64;
+    }
+
+  
+  
   public void setId(Long id) {
     this.id = id;
   }

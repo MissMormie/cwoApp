@@ -5,7 +5,14 @@
  */
 package nl.cwo_app.controller;
 
+import java.util.Base64;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import nl.cwo_app.entity.*;
@@ -57,10 +64,17 @@ public class CursistController {
      * @param response
      */
     @RequestMapping(value = "/cursist", method = RequestMethod.POST)
-    public void createCursist(@RequestBody @Valid Cursist cursist, Errors errors, HttpServletResponse response) {
+    public void createCursist(@RequestBody @Valid Cursist cursist, Errors errors, HttpServletResponse response) throws IOException {
         if (errors.hasErrors()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
+        }
+        // Note preferred way of declaring an array variable
+        byte[] data = Base64.getDecoder().decode(cursist.getFotoFileBase64());
+        try (OutputStream stream = new FileOutputStream("abc.jpg")) {
+            stream.write(data);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(CursistController.class.getName()).log(Level.SEVERE, null, ex);
         }
         cursistRepository.save(cursist);
         response.setStatus(HttpServletResponse.SC_OK);
@@ -118,12 +132,10 @@ public class CursistController {
     @RequestMapping(value = "/cursist/lijst", method = RequestMethod.GET)
     public List<Cursist> cursisten() {
         List<Cursist> cursisten = (List) cursistRepository.findAll();
-        // TODO figure out why even though it's lazy loading it's still getting all info from Cursist.
-        // Work around, deleting the excess info so it's not send in the JSON every single time.
-        // I only want the info for the theory so the rest is filtered out.
+        // TODO http://www.baeldung.com/jackson-bidirectional-relationships-and-infinite-recursion
         cursisten.forEach((cursist) -> {
             // Delete info about diploma eisen from diploma. 
-            List<CursistBehaaldEis> cursistBehaaldEisLijst = cursist.makeTheorieBehaaldEisList();
+            List<CursistBehaaldEis> cursistBehaaldEisLijst = cursist.getCursistBehaaldEis();
             cursistBehaaldEisLijst.forEach((cbe) -> {
                 cbe.getDiplomaEis().getDiploma().setDiplomaEisen(null);
             });
@@ -135,5 +147,6 @@ public class CursistController {
         });
         return cursisten;
     }
+    
 
 }

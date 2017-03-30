@@ -21,4 +21,6 @@ public interface CursistBehaaldEisenRepository extends CrudRepository<CursistBeh
   //@Transactional
   CursistBehaaldEis deleteByCursistIdAndDiplomaEis(Long cursistId, DiplomaEis diplomaEis);
   
+  CursistBehaaldEis findByCursistIdAndDiplomaEis(Long cursistId, DiplomaEis diplomaEis);
+  
 }

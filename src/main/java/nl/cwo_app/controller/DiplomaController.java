@@ -24,39 +24,39 @@ import nl.cwo_app.repository.DiplomaEisRepository;
  */
 @RestController
 public class DiplomaController {
-  // TODO bekijken welke hiervan nodig zijn.
-  private final CursistRepository cursistRepository;
-  private final CursistHeeftDiplomaRepository cursistHeeftDiplomaRepository;
-  private final DiplomaRepository diplomaRepository;
-  private final DiplomaEisRepository cwoEisenRepository;
-  private final CursistBehaaldEisenRepository cursistBehaaldEisenRepository;
+    // TODO bekijken welke hiervan nodig zijn.
 
-  @Autowired
-  public DiplomaController(CursistRepository cursistRepository,
-          CursistHeeftDiplomaRepository cursistHeeftDiplomaRepository,
-          DiplomaRepository diplomaRepository,
-          DiplomaEisRepository cwoEisenRepository,
-          CursistBehaaldEisenRepository cursistBehaaldEisenRepository) {
-    this.cursistRepository = cursistRepository;
-    this.cursistHeeftDiplomaRepository = cursistHeeftDiplomaRepository;
-    this.diplomaRepository = diplomaRepository;
-    this.cwoEisenRepository = cwoEisenRepository;
-    this.cursistBehaaldEisenRepository = cursistBehaaldEisenRepository;
-  }
-  
+    private final CursistRepository cursistRepository;
+    private final CursistHeeftDiplomaRepository cursistHeeftDiplomaRepository;
+    private final DiplomaRepository diplomaRepository;
+    private final DiplomaEisRepository cwoEisenRepository;
+    private final CursistBehaaldEisenRepository cursistBehaaldEisenRepository;
 
-  @RequestMapping(value="/diplomas", method = RequestMethod.GET)
-  public List<Diploma> cursisten() {
-    List<Diploma> diplomas = (List) diplomaRepository.findAll();
-    diplomas.forEach((diploma) ->  {
-        // Because of lazy loading we need to access all the diploma eisen so they get loaded.
-        List<DiplomaEis> deLijst = diploma.getDiplomaEisen();
-        // because of a circular reference JSON would have an infinate response, hence setting diploma in diplomaEis to null.
-        deLijst.forEach((diplomaEis) -> {
-           
-            diplomaEis.setDiploma(null);
-                    });
-    });
-    return diplomas;
-  }
+    @Autowired
+    public DiplomaController(CursistRepository cursistRepository,
+            CursistHeeftDiplomaRepository cursistHeeftDiplomaRepository,
+            DiplomaRepository diplomaRepository,
+            DiplomaEisRepository cwoEisenRepository,
+            CursistBehaaldEisenRepository cursistBehaaldEisenRepository) {
+        this.cursistRepository = cursistRepository;
+        this.cursistHeeftDiplomaRepository = cursistHeeftDiplomaRepository;
+        this.diplomaRepository = diplomaRepository;
+        this.cwoEisenRepository = cwoEisenRepository;
+        this.cursistBehaaldEisenRepository = cursistBehaaldEisenRepository;
+    }
+
+    @RequestMapping(value = "/diplomas", method = RequestMethod.GET)
+    public List<Diploma> cursisten() {
+        List<Diploma> diplomas = (List) diplomaRepository.findAll();
+        diplomas.forEach((diploma) -> {
+            // Because of lazy loading we need to access all the diploma eisen so they get loaded.
+            List<DiplomaEis> deLijst = diploma.getDiplomaEisen();
+            // because of a circular reference JSON would have an infinate response, hence setting diploma in diplomaEis to null.
+            deLijst.forEach((diplomaEis) -> {
+
+                diplomaEis.setDiploma(null);
+            });
+        });
+        return diplomas;
+    }
 }

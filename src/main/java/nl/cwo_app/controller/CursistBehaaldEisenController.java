@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import nl.cwo_app.repository.DiplomaEisRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
 /**
@@ -53,18 +54,34 @@ public class CursistBehaaldEisenController {
     }
 
     @RequestMapping(value = "/cursistBehaaldEisen", method = RequestMethod.POST)
-    public void createCursistBehaaldEisen(@RequestBody Map<String, Object> json, HttpServletResponse response) {
-        Long eisId = Long.valueOf((int) json.get("eisId"));
-        Long cursistId = Long.valueOf((int) json.get("cursistId"));
-        DiplomaEis eis = entityManager.getReference(DiplomaEis.class, eisId);
-        CursistBehaaldEis cbe = new CursistBehaaldEis(cursistId, eis);
-        cursistBehaaldEisenRepository.save(cbe);
+    public void createCursistBehaaldEisen(@RequestBody Map<String, Object> json, HttpServletResponse response) throws Exception {
+        if(json.containsKey("eisId") && json.containsKey("cursistId")) {
+            int eisIdInt = (int) json.get("eisId");
+            Long eisId = Long.valueOf(eisIdInt);
+            Long cursistId = Long.valueOf((int) json.get("cursistId"));
+            DiplomaEis eis = entityManager.getReference(DiplomaEis.class, eisId);
+            CursistBehaaldEis cbe = new CursistBehaaldEis(cursistId, eis);
+            cursistBehaaldEisenRepository.save(cbe);
+        } else {
+            throw new Exception();
+        }
     }
 
     // TODO catch errors if trying to delete something that doesn't exist. 
-    @RequestMapping(value = "/cursistBehaaldEisen/{cursistBehaaldEisId}", method = RequestMethod.DELETE)
-    public void deleteCursist(@PathVariable long cursistBehaaldEisId, HttpServletResponse response) {
-        cursistBehaaldEisenRepository.delete(cursistBehaaldEisId);
+//    @Transactional
+    @RequestMapping(value = "/cursistBehaaldEisen", method = RequestMethod.DELETE)
+    public void deleteCursist(@RequestBody Map<String, Object> json, HttpServletResponse response) throws Exception {
+        if(json.containsKey("eisId") && json.containsKey("cursistId")) {
+            int eisIdInt = (int) json.get("eisId");
+            Long eisId = Long.valueOf(eisIdInt);
+            Long cursistId = Long.valueOf((int) json.get("cursistId"));
+            DiplomaEis eis = entityManager.getReference(DiplomaEis.class, eisId);
+            CursistBehaaldEis cbe = cursistBehaaldEisenRepository.findByCursistIdAndDiplomaEis(cursistId, eis);
+            cursistBehaaldEisenRepository.delete(cbe);
+        } else {
+            throw new Exception();
+        }
+        
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
