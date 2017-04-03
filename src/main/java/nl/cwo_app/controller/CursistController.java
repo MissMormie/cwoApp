@@ -69,13 +69,13 @@ public class CursistController {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
-        // Note preferred way of declaring an array variable
-        byte[] data = Base64.getDecoder().decode(cursist.getFotoFileBase64());
-        try (OutputStream stream = new FileOutputStream("abc.jpg")) {
-            stream.write(data);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(CursistController.class.getName()).log(Level.SEVERE, null, ex);
+        
+        if(cursist.getFotoFileBase64()!= null && cursist.getFotoFileBase64() != "") {
+            //byte[] data = Base64.getDecoder().decode(cursist.getFotoFileBase64());
+            cursist.setFoto(cursist.getFotoFileBase64());
         }
+        
+
         cursistRepository.save(cursist);
         response.setStatus(HttpServletResponse.SC_OK);
     }
@@ -114,7 +114,20 @@ public class CursistController {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
+        
+        if(cursist.getFotoFileBase64()!= null && cursist.getFotoFileBase64() != "") {
+            cursist.setFoto(cursist.getFotoFileBase64());
+        }
+        
         cursistRepository.save(cursist);
+        
+        // Make this smarter. It now saves to db, than returns it, then saves it again. 
+        // possible FIX: Change android code to pass along CursistFoto json and get cursistFoto object in that way. 
+        Cursist cursistFromDb = cursistRepository.findOne(cursist.getId());
+        if(cursist.getFotoFileBase64()!= null && cursist.getFotoFileBase64() != "") {
+            cursistFromDb.setFoto(cursist.getFotoFileBase64());
+            cursistRepository.save(cursistFromDb);
+        }
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
@@ -131,7 +144,7 @@ public class CursistController {
      */
     @RequestMapping(value = "/cursist/lijst", method = RequestMethod.GET)
     public List<Cursist> cursisten() {
-        List<Cursist> cursisten = (List) cursistRepository.findAll();
+        List<Cursist> cursisten = (List) cursistRepository.findAllByOrderByVerborgenAsc();
         // TODO http://www.baeldung.com/jackson-bidirectional-relationships-and-infinite-recursion
         cursisten.forEach((cursist) -> {
             // Delete info about diploma eisen from diploma. 
@@ -148,5 +161,27 @@ public class CursistController {
         return cursisten;
     }
     
+    /**
+     * 
+     * @return list of cursisten, met behaalde diplomas en behaalde THEORIE eisen. Geen andere eisen worden meegestuurd. 
+     */
+    @RequestMapping(value = "/cursist/lijst/verborgen/false", method = RequestMethod.GET)
+    public List<Cursist> partialCursisten() {
+        List<Cursist> cursisten = (List) cursistRepository.findAllByVerborgen(false);
+        // TODO http://www.baeldung.com/jackson-bidirectional-relationships-and-infinite-recursion
+        cursisten.forEach((cursist) -> {
+            // Delete info about diploma eisen from diploma. 
+            List<CursistBehaaldEis> cursistBehaaldEisLijst = cursist.getCursistBehaaldEis();
+            cursistBehaaldEisLijst.forEach((cbe) -> {
+                cbe.getDiplomaEis().getDiploma().setDiplomaEisen(null);
+            });
+            cursist.setCursistBehaaldEis(cursistBehaaldEisLijst);
+
+            cursist.getCursistHeeftDiplomas().forEach(cursistHeeftDiploma -> {
+                cursistHeeftDiploma.getDiploma().setDiplomaEisen(null);
+            });
+        });
+        return cursisten;
+    }
 
 }

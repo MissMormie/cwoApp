@@ -5,16 +5,15 @@
  */
 package nl.cwo_app.repository;
 
-import java.util.List;
-import nl.cwo_app.entity.Cursist;
+import java.io.Serializable;
+import nl.cwo_app.entity.CursistFoto;
 import org.springframework.data.repository.CrudRepository;
 
 /**
  *
- * @author Sonja
+ * @author sonja
  */
-public interface CursistRepository extends CrudRepository<Cursist, Long> { 
-    public List<Cursist> findAllByOrderByVerborgenAsc();
+public interface CursistFotoRepository extends CrudRepository<CursistFoto, Serializable> {
     
-    public List<Cursist> findAllByVerborgen(boolean verborgen);
+    
 }

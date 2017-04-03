@@ -12,7 +12,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
@@ -23,38 +25,41 @@ import javax.validation.constraints.NotNull;
 @Entity
 public class Cursist implements java.io.Serializable {
 
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Id
-  private Long id;
-  @NotNull
-  private String voornaam;
-  private String tussenvoegsel;
-  private String achternaam;
-  private String opmerkingen;
-  @Temporal(javax.persistence.TemporalType.DATE)
-  private Date paspoort;
-  private String foto;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    private Long id;
+    @NotNull
+    private String voornaam;
+    private String tussenvoegsel;
+    private String achternaam;
+    private String opmerkingen;
+    private boolean verborgen;
+ 
+    @Temporal(javax.persistence.TemporalType.DATE)
+    private Date paspoort;
 
-  @Transient
-  private String fotoFileBase64;
-  
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursistId")
-  private List<CursistBehaaldEis> cursistBehaaldEis = new ArrayList(0);
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursist")
+    private CursistFoto cursistFoto;
 
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursistId")
-  private List<CursistHeeftDiploma> cursistHeeftDiplomas = new ArrayList();
-  
+    @Transient
+    private String fotoFileBase64;
 
-  public Cursist() {
-  }
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursistId")
+    private List<CursistBehaaldEis> cursistBehaaldEis = new ArrayList(0);
 
-  public Cursist(String voornaam) {
-    this.voornaam = voornaam;
-  }
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "cursistId")
+    private List<CursistHeeftDiploma> cursistHeeftDiplomas = new ArrayList();
 
-  public Long getId() {
-    return this.id;
-  }
+    public Cursist() {
+    }
+
+    public Cursist(String voornaam) {
+        this.voornaam = voornaam;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
 
     public String getFotoFileBase64() {
         return fotoFileBase64;
@@ -64,59 +69,73 @@ public class Cursist implements java.io.Serializable {
         this.fotoFileBase64 = fotoFileBase64;
     }
 
-  
-  
-  public void setId(Long id) {
-    this.id = id;
-  }
+    public CursistFoto getCursistFoto() {
+        return cursistFoto;
+    }
 
-  public String getVoornaam() {
-    return this.voornaam;
-  }
+    public void setCursistFoto(CursistFoto cursistFoto) {
+        this.cursistFoto = cursistFoto;
+    }
 
-  public void setVoornaam(String voornaam) {
-    this.voornaam = voornaam;
-  }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-  public String getTussenvoegsel() {
-    return this.tussenvoegsel;
-  }
+    public String getVoornaam() {
+        return this.voornaam;
+    }
 
-  public void setTussenvoegsel(String tussenvoegsel) {
-    this.tussenvoegsel = tussenvoegsel;
-  }
+    public void setVoornaam(String voornaam) {
+        this.voornaam = voornaam;
+    }
 
-  public String getAchternaam() {
-    return this.achternaam;
-  }
+    public String getTussenvoegsel() {
+        return this.tussenvoegsel;
+    }
 
-  public void setAchternaam(String achternaam) {
-    this.achternaam = achternaam;
-  }
+    public void setTussenvoegsel(String tussenvoegsel) {
+        this.tussenvoegsel = tussenvoegsel;
+    }
 
-  public String getOpmerkingen() {
-    return this.opmerkingen;
-  }
+    public String getAchternaam() {
+        return this.achternaam;
+    }
 
-  public void setOpmerkingen(String opmerkingen) {
-    this.opmerkingen = opmerkingen;
-  }
+    public void setAchternaam(String achternaam) {
+        this.achternaam = achternaam;
+    }
 
-  public Date getPaspoort() {
-    return this.paspoort;
-  }
+    public String getOpmerkingen() {
+        return this.opmerkingen;
+    }
 
-  public void setPaspoort(Date paspoort) {
-    this.paspoort = paspoort;
-  }
+    public void setOpmerkingen(String opmerkingen) {
+        this.opmerkingen = opmerkingen;
+    }
 
-  public String getFoto() {
-    return this.foto;
-  }
+    public Date getPaspoort() {
+        return this.paspoort;
+    }
 
-  public void setFoto(String foto) {
-    this.foto = foto;
-  }
+    public void setPaspoort(Date paspoort) {
+        this.paspoort = paspoort;
+    }
+
+    public boolean isVerborgen() {
+        return verborgen;
+    }
+
+    public void setVerborgen(boolean verborgen) {
+        this.verborgen = verborgen;
+    }
+    
+    public void setFoto(String foto) {
+        if (cursistFoto == null) {
+            cursistFoto = new CursistFoto();
+        }
+        cursistFoto.setCursist(this);
+        cursistFoto.setImage(foto);
+    }
 
     public List<CursistBehaaldEis> getCursistBehaaldEis() {
         return cursistBehaaldEis;
@@ -133,11 +152,11 @@ public class Cursist implements java.io.Serializable {
     public void setCursistHeeftDiplomas(List<CursistHeeftDiploma> cursistHeeftDiplomas) {
         this.cursistHeeftDiplomas = cursistHeeftDiplomas;
     }
-    
+
     public List<CursistBehaaldEis> makeTheorieBehaaldEisList() {
         List<CursistBehaaldEis> cursistBehaaldTheorieEis = new ArrayList();
-        for(CursistBehaaldEis cbe: cursistBehaaldEis) {
-            if(cbe.checkTheorieEis()) {
+        for (CursistBehaaldEis cbe : cursistBehaaldEis) {
+            if (cbe.checkTheorieEis()) {
                 cursistBehaaldTheorieEis.add(cbe);
             }
         }

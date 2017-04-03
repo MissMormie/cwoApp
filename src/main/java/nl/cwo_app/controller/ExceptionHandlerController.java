@@ -29,4 +29,9 @@ public class ExceptionHandlerController {
   @ExceptionHandler(EmptyResultDataAccessException.class)
   public void EmptyResultDataAccessException() {
   }  
+  
+  @ResponseStatus(value=HttpStatus.CONFLICT, reason="Unknown Exception")  // Error 409
+  @ExceptionHandler(Exception.class)
+  public void Exception() {
+  }  
 }
