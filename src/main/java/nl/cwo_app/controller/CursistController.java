@@ -5,14 +5,8 @@
  */
 package nl.cwo_app.controller;
 
-import java.util.Base64;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import nl.cwo_app.entity.*;
@@ -64,20 +58,20 @@ public class CursistController {
      * @param response
      */
     @RequestMapping(value = "/cursist", method = RequestMethod.POST)
-    public void createCursist(@RequestBody @Valid Cursist cursist, Errors errors, HttpServletResponse response) throws IOException {
+    public Cursist createCursist(@RequestBody @Valid Cursist cursist, Errors errors, HttpServletResponse response) throws IOException {
         if (errors.hasErrors()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
+            return null;
         }
-        
-        if(cursist.getFotoFileBase64()!= null && cursist.getFotoFileBase64() != "") {
+
+        if (cursist.getFotoFileBase64() != null && cursist.getFotoFileBase64() != "") {
             //byte[] data = Base64.getDecoder().decode(cursist.getFotoFileBase64());
             cursist.setFoto(cursist.getFotoFileBase64());
         }
-        
 
-        cursistRepository.save(cursist);
+        cursist = cursistRepository.save(cursist);
         response.setStatus(HttpServletResponse.SC_OK);
+        return cursist;
     }
 
     /**
@@ -93,7 +87,6 @@ public class CursistController {
         cursist.getCursistBehaaldEis().forEach((cbe) -> {
             cbe.getDiplomaEis().getDiploma().setDiplomaEisen(null);
         });
-        
 
         cursist.getCursistHeeftDiplomas().forEach(cursistHeeftDiploma -> {
             cursistHeeftDiploma.getDiploma().setDiplomaEisen(null);
@@ -109,26 +102,33 @@ public class CursistController {
      * @param response
      */
     @RequestMapping(value = "/cursist", method = RequestMethod.PUT)
-    public void updateCursist(@RequestBody @Valid Cursist cursist, Errors errors, HttpServletResponse response) {
+    public Cursist updateCursist(@RequestBody @Valid Cursist cursist, Errors errors, HttpServletResponse response) {
         if (errors.hasErrors()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
+            return null;
         }
-        
-        if(cursist.getFotoFileBase64()!= null && cursist.getFotoFileBase64() != "") {
-            cursist.setFoto(cursist.getFotoFileBase64());
-        }
-        
-        cursistRepository.save(cursist);
-        
+        Cursist cursistFromDb = cursistRepository.findOne(cursist.getId());
+
+        // For some reason hibernate does not see cursist as an already existing one. 
+        // Gives error for trying to duplicate entry. So, dirty work around hack, where 
+        // i get info from db, update that and save it. 
+        cursistFromDb.setVoornaam(cursist.getVoornaam());
+        cursistFromDb.setTussenvoegsel(cursist.getTussenvoegsel());
+        cursistFromDb.setAchternaam(cursist.getAchternaam());
+        cursistFromDb.setOpmerkingen(cursist.getOpmerkingen());
+        cursistFromDb.setVerborgen(cursist.isVerborgen());
+        cursistFromDb.setPaspoort(cursist.getPaspoort());
+
         // Make this smarter. It now saves to db, than returns it, then saves it again. 
         // possible FIX: Change android code to pass along CursistFoto json and get cursistFoto object in that way. 
-        Cursist cursistFromDb = cursistRepository.findOne(cursist.getId());
-        if(cursist.getFotoFileBase64()!= null && cursist.getFotoFileBase64() != "") {
+        if (cursist.getFotoFileBase64() != null && !cursist.getFotoFileBase64().equals("")) {
             cursistFromDb.setFoto(cursist.getFotoFileBase64());
-            cursistRepository.save(cursistFromDb);
         }
+
+        cursist = cursistRepository.save(cursistFromDb);
         response.setStatus(HttpServletResponse.SC_OK);
+        
+        return removeDiplomaEisInfo(cursist);
     }
 
     //
@@ -139,49 +139,51 @@ public class CursistController {
     }
 
     /**
-     * 
-     * @return list of cursisten, met behaalde diplomas en behaalde THEORIE eisen. Geen andere eisen worden meegestuurd. 
+     *
+     * @return list of cursisten, met behaalde diplomas en behaalde THEORIE
+     * eisen.
      */
     @RequestMapping(value = "/cursist/lijst", method = RequestMethod.GET)
     public List<Cursist> cursisten() {
-        List<Cursist> cursisten = (List) cursistRepository.findAllByOrderByVerborgenAsc();
-        // TODO http://www.baeldung.com/jackson-bidirectional-relationships-and-infinite-recursion
-        cursisten.forEach((cursist) -> {
-            // Delete info about diploma eisen from diploma. 
-            List<CursistBehaaldEis> cursistBehaaldEisLijst = cursist.getCursistBehaaldEis();
-            cursistBehaaldEisLijst.forEach((cbe) -> {
-                cbe.getDiplomaEis().getDiploma().setDiplomaEisen(null);
-            });
-            cursist.setCursistBehaaldEis(cursistBehaaldEisLijst);
+        List<Cursist> cursisten = (List) cursistRepository.findAllByOrderByVerborgenAscVoornaamAsc();
 
-            cursist.getCursistHeeftDiplomas().forEach(cursistHeeftDiploma -> {
-                cursistHeeftDiploma.getDiploma().setDiplomaEisen(null);
-            });
-        });
+        cursisten = removeDiplomaEisInfo(cursisten);
         return cursisten;
     }
-    
+
     /**
-     * 
-     * @return list of cursisten, met behaalde diplomas en behaalde THEORIE eisen. Geen andere eisen worden meegestuurd. 
+     *
+     * @return list of cursisten, met behaalde diplomas en behaalde THEORIE
+     * eisen.
      */
     @RequestMapping(value = "/cursist/lijst/verborgen/false", method = RequestMethod.GET)
     public List<Cursist> partialCursisten() {
-        List<Cursist> cursisten = (List) cursistRepository.findAllByVerborgen(false);
-        // TODO http://www.baeldung.com/jackson-bidirectional-relationships-and-infinite-recursion
-        cursisten.forEach((cursist) -> {
-            // Delete info about diploma eisen from diploma. 
-            List<CursistBehaaldEis> cursistBehaaldEisLijst = cursist.getCursistBehaaldEis();
-            cursistBehaaldEisLijst.forEach((cbe) -> {
-                cbe.getDiplomaEis().getDiploma().setDiplomaEisen(null);
-            });
-            cursist.setCursistBehaaldEis(cursistBehaaldEisLijst);
+        List<Cursist> cursisten = (List) cursistRepository.findAllByVerborgenOrderByVoornaamAsc(false);
 
-            cursist.getCursistHeeftDiplomas().forEach(cursistHeeftDiploma -> {
-                cursistHeeftDiploma.getDiploma().setDiplomaEisen(null);
-            });
+        cursisten = removeDiplomaEisInfo(cursisten);
+        return cursisten;
+    }
+
+    private List<Cursist> removeDiplomaEisInfo(List<Cursist> cursisten) {
+        cursisten.forEach((cursist) -> {
+            removeDiplomaEisInfo(cursist);
+
         });
         return cursisten;
+    }
+
+    private Cursist removeDiplomaEisInfo(Cursist cursist) {
+        // Delete info about diploma eisen from diploma. 
+        List<CursistBehaaldEis> cursistBehaaldEisLijst = cursist.getCursistBehaaldEis();
+        cursistBehaaldEisLijst.forEach((cbe) -> {
+            cbe.getDiplomaEis().getDiploma().setDiplomaEisen(null);
+        });
+        cursist.setCursistBehaaldEis(cursistBehaaldEisLijst);
+
+        cursist.getCursistHeeftDiplomas().forEach(cursistHeeftDiploma -> {
+            cursistHeeftDiploma.getDiploma().setDiplomaEisen(null);
+        });
+        return cursist;
     }
 
 }

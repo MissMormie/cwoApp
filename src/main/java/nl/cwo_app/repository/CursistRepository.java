@@ -14,7 +14,7 @@ import org.springframework.data.repository.CrudRepository;
  * @author Sonja
  */
 public interface CursistRepository extends CrudRepository<Cursist, Long> { 
-    public List<Cursist> findAllByOrderByVerborgenAsc();
+    public List<Cursist> findAllByOrderByVerborgenAscVoornaamAsc();
     
-    public List<Cursist> findAllByVerborgen(boolean verborgen);
+    public List<Cursist> findAllByVerborgenOrderByVoornaamAsc(boolean verborgen);
 }

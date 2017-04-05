@@ -63,9 +63,21 @@ public class CursistHeeftDiplomaController {
         cursistHeeftDiplomaRepository.save(chd);
     }
 
+    /*
     @RequestMapping(value = "/cursistHeeftDiploma/{cursistHeeftDiplomaId}", method = RequestMethod.DELETE)
     public void deleteCursist(@PathVariable long cursistHeeftDiplomaId, HttpServletResponse response) {
         cursistHeeftDiplomaRepository.delete(cursistHeeftDiplomaId);
         response.setStatus(HttpServletResponse.SC_OK);
     }
+*/
+    
+    @RequestMapping(value = "/cursistHeeftDiploma", method = RequestMethod.DELETE)
+    public void deleteCursist(@RequestBody Map<String, Object> json, HttpServletResponse response) {
+        Long diplomaId = Long.valueOf((int) json.get("diplomaId"));
+        Long cursistId = Long.valueOf((int) json.get("cursistId"));
+        Diploma diploma = entityManager.getReference(Diploma.class, diplomaId);
+        CursistHeeftDiploma cursistHeeftDiploma = cursistHeeftDiplomaRepository.findByCursistIdAndDiploma(cursistId, diploma);
+        cursistHeeftDiplomaRepository.delete(cursistHeeftDiploma);
+        response.setStatus(HttpServletResponse.SC_OK);
+    }    
 }

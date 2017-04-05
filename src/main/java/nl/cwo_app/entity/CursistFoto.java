@@ -5,6 +5,7 @@
  */
 package nl.cwo_app.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -33,9 +34,9 @@ public class CursistFoto {
     @JsonIgnore
     private String image; // Base64 representation of thumbnail
     
-    @JsonIgnore
     @OneToOne
     @JoinColumn(name = "cursist_id")
+    @JsonBackReference
     private Cursist cursist;
 
     public String getImage() {
