@@ -22,3 +22,5 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+/src/main/resources/debug.properties
+/src/main/resources/production.properties
